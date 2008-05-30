@@ -1,0 +1,6 @@
+Revision history for Perl extension Continuity::Monitor.
+
+0.01  Tue Jul 24 23:21:44 2007
+	- original version; created by h2xs 1.23 with options
+		-X Continuity::Monitor
+

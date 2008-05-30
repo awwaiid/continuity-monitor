@@ -1,0 +1,358 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd"> 
+<html>
+<head>
+<title>Code Browser</title>
+
+
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dimensions.js"></script>
+<script type="text/javascript" src="jquery.tabs.pack.js"></script>
+<script type="text/javascript" src="jquery.treeview.js"></script>
+<script type="text/javascript" src="splitter.js"></script>
+<script type="text/javascript" src="jquery-fieldselection.js"></script>
+<script type="text/javascript" src="code-edit.js"></script>
+<script type="text/javascript">
+  $(function() {
+    $('textarea.autoindent').keypress(autoindent);
+  });
+</script>
+
+<!-- General page styles (not critical to the demos) -->
+<link rel="stylesheet" type="text/css" href="main.css" />
+
+<style type="text/css" media="all">
+html, body
+{
+	margin: 0;			/* Remove body margin/padding */
+	padding: 0;
+	overflow: hidden;	/* Remove scroll bars on browser window */
+}
+#header { padding: 1em; }
+
+.treeview, .treeview ul {  
+    padding: 0; 
+    margin: 0; 
+    list-style: none; 
+}     
+ 
+.treeview li {  
+    margin: 0; 
+    padding: 4px 0 3px 20px; 
+} 
+ 
+.treeview li { background: url(images/tv-item.gif) 0 0 no-repeat; } 
+.treeview .collapsable { background-image: url(images/tv-collapsable.gif); } 
+.treeview .expandable { background-image: url(images/tv-expandable.gif); } 
+.treeview .last { background-image: url(images/tv-item-last.gif); } 
+.treeview .lastCollapsable { background-image: url(images/tv-collapsable-last.gif); } 
+.treeview .lastExpandable { background-image: url(images/tv-expandable-last.gif); }
+
+#SelectAndEditSplitter {
+	border: 1px solid #889;
+    /*width: 100%;*/
+    margin-left: 2em;
+    margin-right: 2em;
+    width: auto;
+}
+
+#SelectionSplitter {
+	border: 1px solid #889;
+    width: 100%;;
+  height: 200px;
+  min-height: 100px;
+}
+
+.pane {
+	background: #eef;
+	padding: 0px;
+	overflow: auto;
+}
+.pane select {
+  width: 100%;
+  height: 90%;
+  border: 0;
+}
+
+
+.pane textarea {
+  width: 100%;
+  height: 100%;
+}
+
+#EditPane {
+  overflow: hidden;
+}
+
+.pane h2 {
+  font-size: 16px;
+  margin: 0;
+  padding: 0;
+  border-bottom: 1px solid black;
+}
+
+.hsplitbar {
+	height: 4px;
+	background: #889 url(images/hgrabber.gif) no-repeat center;
+}
+
+.vsplitbar {
+	width: 4px;
+	background: #889 url(images/vgrabber.gif) no-repeat center;
+}
+
+.hsplitbar.active, .hsplitbar:hover {
+	background: #c66 url(images/hgrabber.gif) no-repeat center;
+}
+
+.vsplitbar.active, .vsplitbar:hover {
+	background: #c66 url(images/vgrabber.gif) no-repeat center;
+}
+
+.tree {
+  background-color: white;
+}
+
+.treeview a {
+  text-decoration: none;
+  display: block;
+  width: 100%;
+  color: black;
+}
+
+.treeview a:hover {
+  background-color: #998;
+}
+
+#tab-container, .tabs-container {
+  height: 100%;
+}
+
+</style>
+<script type="text/javascript">
+$().ready(function() {
+
+    $("#SelectAndEditSplitter").splitter({
+      type: "h",
+ 	/* minA: 100, initA: 150, maxA: 250, */
+		accessKey: "I"
+    });
+
+	// Main vertical splitter. The min/max/init sizes for the left (A)
+	// pane are set here. All values are in pixels.
+	$("#SelectionSplitter").splitter({
+		type: "v", 
+		/* minA: 100, initA: 150, maxA: 250, */
+		accessKey: "|"
+	})
+	
+	// Second vertical splitter, nested in the right pane of the main one.
+	// Setting its right (B) pane gives that column a semi-fixed width.
+	$("#CenterAndMethodPane").splitter({
+		type: "v"
+		/* minB: 100, initB: 150, maxB: 250 */
+		//accessKey: "I"
+	});
+
+	// Manually set the outer splitter's height to fill the browser window.
+	// This event fires any time the browser window is resized.
+	$(window).bind("resize", function(){
+		 var $ms = $("#SelectAndEditSplitter");
+		var top = $ms.offset().top;		// from dimensions.js
+		var wh = $(window).height();
+		// Account for margin or border on the splitter container
+		var mrg = parseInt($ms.css("marginBottom")) || 0;
+		var brd = parseInt($ms.css("borderBottomWidth")) || 0;
+		$ms.css("height", (wh-top-mrg-brd-10)+"px");
+		//$ms.css("height", "150px");
+		// IE fires resize for splitter; others don't so do it here
+		if ( !jQuery.browser.msie )
+			$ms.trigger("resize");
+	}).trigger("resize");
+
+    $('.tree').Treeview({ speed: "fast", collapsed: true});
+
+    $('.treeview a').click(function(){
+      var filename = $(this).text();
+      var cur_node = $(this);
+      while((!cur_node.attr('class') || !cur_node.attr('class').match(/treeview/)) && cur_node.parent()) {
+        if(cur_node[0].nodeName == 'LI' && cur_node.children()[1]) {
+          filename = cur_node.children().eq(1).text() + '/' + filename;
+        }
+        cur_node = cur_node.parent();
+      }
+      //$('#edit').val('loading ' + filename + ' ...');
+      $.get('/projects/perl/Continuity/' + filename, function(data){
+        $('#edit').val(data);
+      });
+      return false;
+    });
+    $('#tab-container').tabs({
+      onShow: function(tab, shown, hidden) {
+        $(shown).height(parseInt($(shown).height()) - 57);
+      }
+    });
+});
+</script>
+
+<link
+    rel="stylesheet"
+    href="jquery.tabs.css"
+    type="text/css"
+    media="print, projection, screen">
+<!-- Additional IE/Win specific style sheet (Conditional Comments) -->
+<!--[if lte IE 7]>
+<link
+    rel="stylesheet"
+    href="jquery.tabs-ie.css"
+    type="text/css"
+    media="projection, screen">
+<![endif]-->
+
+</head>
+<body>
+
+<div id="SelectAndEditSplitter">
+
+  <div id="SelectionSplitter">
+
+    <div id="FilePane" class="pane">
+      <h2>File</h2>
+      <ul class="tree">
+        <li>util
+          <ul>
+            <li><a>highport.c</a></li>
+          </ul>
+        </li>
+        <li><div>eg</div>
+          <ul>
+            <li><a>hello.pl</a></li>
+            <li><a>guess.pl</a></li>
+            <li><div>broken</div>
+              <ul>
+                <li><a>guess_backbutton.pl</a></li>
+                <li><a>guess_fcgi.fcgi</a></li>
+                <li><a>countup.pl</a></li>
+                <li><a>counter-advanced.pl</a></li>
+                <li><a>fcgi_nocont.fcgi</a></li>
+                <li><a>animals.pl</a></li>
+              </ul>
+            </li>
+            <li><a>petstore.pl</a></li>
+            <li><a>leakfinder.pl</a></li>
+            <li><a>post-redirect.pl</a></li>
+            <li><a>guess.fcgi</a></li>
+            <li><a>counter.fcgi</a></li>
+            <li><a>chat.pl</a></li>
+            <li><a>jquery.js</a></li>
+            <li><a>merlyn-animals.pl.txt</a></li>
+            <li><a>chat-ajax-push.js</a></li>
+            <li><a>guess-peek.pl</a></li>
+            <li><a>fcgi_test.fcgi</a></li>
+            <li><a>hello.fcgi</a></li>
+            <li><a>addtwo.pl</a></li>
+            <li><a>counter.pl</a></li>
+            <li><a>supercounter.pl</a></li>
+            <li>old/client.php
+            <li><a>fcgi_nocont.fcgi</a></li>
+            <li><a>chat-ajax-push.pl</a></li>
+          </ul>
+        </li>
+        <li><div>t</div>
+          <ul>
+            <li><a>adapt-httpdaemon.t</a></li>
+            <li><a>Continuity.t</a></li>
+          </ul>
+        </li>
+        <li><div>lib</div>
+          <ul>
+            <li><div>Continuity</div>
+              <ul>
+                <li><a>Monitor.pm</a></li>
+                <li><a>Quick.pm</a></li>
+                <li><a>Mapper.pm</a></li>
+                <li><div>Adapt</div>
+                  <ul>
+                    <li><a>FCGI.pm</a></li>
+                    <li><a>HttpDaemon.pm</a></li>
+                  </ul>
+                </li>
+                <li><a>Inspector.pm</a></li>
+                <li><a>RequestHolder.pm</a></li>
+                <li><a>Request.pm</a></li>
+              </ul>
+            <li><a>Continuity.pm</a></li>
+          </ul>
+        </li>
+        <li><a>Changes</a></li>
+        <li><a>Makefile.PL</a></li>
+      </ul>
+
+    </div> <!-- #FilePane -->
+    
+    <div id="CenterAndMethodPane">
+    
+      <div id="PackagePane" class="pane">
+      <h2>Package</h2>
+      <select size=5>
+        <option>One</option>
+        <option>One</option>
+        <option>One</option>
+        <option>One</option>
+        <option>One</option>
+        <option>One</option>
+        <option>One</option>
+      </select>
+      </div> <!-- #PackagePane -->
+      
+      <div id="MethodPane" class="pane">
+      <h2>Method</h2>
+      <select size=5>
+        <option>new</option>
+        <option>get_request</option>
+        <option>map_path</option>
+        <option>send_static</option>
+        <option>debug</option>
+        <option>new</option>
+        <option>param</option>
+        <option>end_request</option>
+        <option>set_cookie</option>
+        <option>send_basic_header</option>
+        <option>print</option>
+        <option>uri</option>
+        <option>method</option>
+        <option>query_string</option>
+        <option>immediate</option>
+        <option>conn</option>
+        <option>http_request</option>
+        <option>AUTOLOAD</option>
+      </select>
+      </div> <!-- #MethodPane -->
+      
+    </div> <!-- #CenterAndMethodPane -->
+    
+  </div> <!-- #SelectionSplitter -->
+  
+  <div id="EditPane" class="pane">
+    
+        <div id="tab-container">
+            <ul>
+                <li><a href="#code-tab"><span>Code</span></a></li>
+                <li><a href="#pod-tab"><span>POD</span></a></li>
+            </ul>
+            <div id="code-tab">
+              <textarea id="edit" class="autoindent" cols=80 rows=25></textarea>
+            </div>
+            <div id="pod-tab">
+              <textarea id="edit-pod" class="autoindent" cols=80 rows=25></textarea>
+            </div>
+        </div>
+    
+    
+    
+    
+  </div>
+
+</div>
+
+</body>
+</html>
