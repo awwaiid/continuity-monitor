@@ -162,13 +162,17 @@ sub default_repl {
 
   my $repl = Devel::REPL::Continuity->new( request => $self->request );
   $repl->load_plugin($_) for qw(
-    History
-    LexEnv
-    MultiLine::PPI
     FancyPrompt
-    DDS Refresh Interrupt Packages
+    Packages
+    Refresh
+    Interrupt
     ShowClass
+    History
+    MultiLine::PPI
+    LexEnv
+    DDS
   );
+    # Carp::REPL
     # DebugHelp
     # Colors
     # Completion CompletionDriver::LexEnv
