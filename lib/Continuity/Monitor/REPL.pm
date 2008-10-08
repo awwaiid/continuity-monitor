@@ -74,6 +74,11 @@ haven't been able to figure out how to hack Term::ReadLine::Gnu yet.
   has request => ( is => 'rw' );
   has output => (is => 'rw', default => '');
 
+  has 'term' => (
+    is => 'rw', required => 1,
+    default => sub { }
+  );
+
   sub print {
     my ($self, @ret) = @_;
     my $out = "@ret";
