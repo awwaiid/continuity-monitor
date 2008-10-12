@@ -1,25 +1,30 @@
 package Continuity::Monitor::CGI;
 
-use lib '/home/awwaiid/projects/perl/Continuity/lib';
-#use lib '/home/awwaiid/projects/perl/third-party/Carp-REPL-0.13/lib';
 use Moose;
+use Moose::Exporter;
+
+Moose::Exporter->setup_import_methods(
+  _export_to_main => 1,
+  as_is => [\&inspect]
+);
+
 use Method::Signatures;
 
 use IO::Handle;
+use Data::Dumper;
 
-use Continuity;
-use Continuity::Monitor::REPL;
-
-#use PadWalker qw( peek_my peek_our peek_sub closed_over );
 use Devel::StackTrace::WithLexicals;
 
-use Sub::Exporter;
-Sub::Exporter::setup_exporter({
-  exports => [qw( inspect )]
-});
+use Continuity;
+    
+use Continuity::Monitor::Plugin::CallStack;
+use Continuity::Monitor::Plugin::REPL;
+use Continuity::Monitor::Plugin::Exit;
+use Continuity::Monitor::Plugin::Counter;
+use Continuity::Monitor::Plugin::FileEdit;
 
-has trace => ( is => 'rw' );
 has request => ( is => 'rw' );
+has trace => ( is => 'rw' );
 
 sub inspect {
   print STDERR "Starting inspector...\n";
@@ -30,10 +35,14 @@ sub inspect {
 }
 
 method start_inspecting {
-  $self->trace( Devel::StackTrace::WithLexicals->new );
+  my $trace = Devel::StackTrace::WithLexicals->new(
+    ignore_package => [qw( Devel::StackTrace Continuity::Monitor::CGI )]
+  );
+  $self->trace( $trace );
   my $server = Continuity->new(
     callback => \&main,
     port => 8080,
+    docroot => '/home/awwaiid/projects/perl/Continuity-Monitor/htdocs',
     debug_callback => sub { STDERR->print("@_\n") },
     callback => sub { $self->main(@_) },
   );
@@ -41,25 +50,64 @@ method start_inspecting {
   print STDERR "Done inspecting!\n";
 }
 
-method scope_inspector($request) {
-  my @pad = ();
-  my $i = 0;
-  while(!$@) {
-    push @pad, peek_my $i++;
-  }
+
+method print_header {
+  my $id = $self->request->session_id;
+  $self->request->print(qq|
+    <html>
+      <head>
+        <title>Continuity::Monitor</title>
+        <link rel="stylesheet" type="text/css" href="htdocs/mon.css">
+        <link rel="stylesheet" href="js/themes/flora/flora.dialog.css" type="text/css" media="screen">
+        <link rel="stylesheet" href="js/jquery-treeview/jquery.treeview.css" />
+        <script type="text/javascript" src="js/jquery-1.2.6.js"></script>
+        <script type="text/javascript" src="js/ui/ui.core.js"></script>
+        <script type="text/javascript" src="js/ui/ui.dialog.js"></script>
+        <script type="text/javascript" src="js/ui/ui.draggable.js"></script>
+        <script type="text/javascript" src="js/ui/ui.resizable.js"></script>
+        <script type="text/javascript" src="js/jquery-treeview/jquery.treeview.js"></script>
+        <script type="text/javascript" src="js/jquery.cookie.js"></script>
+        <script type="text/javascript" src="mon.js"></script>
+      </head>
+      <body class=flora>
+        <input type=hidden name=sid value="$id">
+  |);
 }
 
+method print_footer {
+
+  $self->request->print(qq|
+      </body>
+    </html>
+  |);
+}
+
+
+our $t;
 method main($request) {
   $self->request($request);
-  my $repl = Continuity::Monitor::REPL->new( request => $request );
-  while($repl->repl->run_once) {
-    $request->print("<pre>" . $self->trace->as_string . "</pre>");
-  }
+  $t = $self->trace;
+  my @plugins = (
+    Continuity::Monitor::Plugin::CallStack->new( request => $request, trace => $t ),
+    Continuity::Monitor::Plugin::REPL->new( request => $request ),
+    Continuity::Monitor::Plugin::Exit->new( request => $request ),
+    Continuity::Monitor::Plugin::Counter->new( request => $request ),
+    Continuity::Monitor::Plugin::FileEdit->new( request => $request ),
+  );
+  my $continue = 1;
+  do {
+    $self->print_header;
+    foreach my $plugin (@plugins) {
+      $continue &&= $plugin->process();
+    }
+    $self->print_footer;
+    $self->request->next if $continue;
+
+  } while($continue);
   Coro::Event::unloop();
   $request->print("Exiting...");
   $request->end_request;
 }
-
 
 1;
 

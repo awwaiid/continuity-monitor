@@ -1,8 +1,8 @@
 #!/usr/bin/perl
 
 use strict;
-use lib 'lib';
-use Continuity::Monitor::CGI;
+use lib '../lib';
+use Continuity::Monitor::CGI qw( inspect );
 
 my $x = 5;
 
@@ -18,13 +18,20 @@ sub print_page {
 
 sub print_hello {
   my $y = 'hiya';
+  my $h = {
+    a => 1,
+    b => 2,
+  };
   print "Hello...\n";
-  Continuity::Monitor::CGI::inspect();
+  inspect();
+  print "world!";
 }
 
+#chdir('..');
 print_header();
 print_page();
 
-print "Goodbye... $x\n";
+print "<br>x=$x<br><br>\n";
+print "Goodbye!\n";
 
 
