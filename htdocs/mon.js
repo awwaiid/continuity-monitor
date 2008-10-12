@@ -28,7 +28,7 @@ $(function() {
 });
 
 $(function() {  
-  $('body').children().wrapAll("<form method=post></form>");
+  $('body').children().wrapAll("<form method=post action='/'></form>");
   $('#repl input[type=text]').focus();
 });
 
