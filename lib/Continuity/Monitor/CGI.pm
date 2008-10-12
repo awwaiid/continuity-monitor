@@ -88,11 +88,11 @@ method main($request) {
   $self->request($request);
   $t = $self->trace;
   my @plugins = (
-    Continuity::Monitor::Plugin::CallStack->new( request => $request, trace => $t ),
     Continuity::Monitor::Plugin::REPL->new( request => $request ),
-    Continuity::Monitor::Plugin::Exit->new( request => $request ),
-    Continuity::Monitor::Plugin::Counter->new( request => $request ),
-    Continuity::Monitor::Plugin::FileEdit->new( request => $request ),
+    # Continuity::Monitor::Plugin::CallStack->new( request => $request, trace => $t ),
+    # Continuity::Monitor::Plugin::Exit->new( request => $request ),
+    # Continuity::Monitor::Plugin::Counter->new( request => $request ),
+    # Continuity::Monitor::Plugin::FileEdit->new( request => $request ),
   );
   my $continue = 1;
   do {
