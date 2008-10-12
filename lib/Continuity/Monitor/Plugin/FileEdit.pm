@@ -2,8 +2,8 @@ package Continuity::Monitor::Plugin::FileEdit;
 
 use Moose;
 use Method::Signatures;
-use File::Slurp;A
-use HTML::Entities
+use File::Slurp;
+use HTML::Entities;
 
 extends 'MooseX::Continuity::Widget';
 
@@ -24,6 +24,7 @@ method main {
 
 method edit_file($filename) {
   my $content = read_file($filename);
+  $content = encode_entities($content);
   my $textarea_name = $self->field_name('content');
   while(1) {
     my $action;
