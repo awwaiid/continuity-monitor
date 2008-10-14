@@ -61,10 +61,7 @@ method print_header {
         <link rel="stylesheet" href="js/themes/flora/flora.dialog.css" type="text/css" media="screen">
         <link rel="stylesheet" href="js/jquery-treeview/jquery.treeview.css" />
         <script type="text/javascript" src="js/jquery-1.2.6.js"></script>
-        <script type="text/javascript" src="js/ui/ui.core.js"></script>
-        <script type="text/javascript" src="js/ui/ui.dialog.js"></script>
-        <script type="text/javascript" src="js/ui/ui.draggable.js"></script>
-        <script type="text/javascript" src="js/ui/ui.resizable.js"></script>
+        <script type="text/javascript" src="js/jquery.ui.all.js"></script>
         <script type="text/javascript" src="js/jquery-treeview/jquery.treeview.js"></script>
         <script type="text/javascript" src="js/jquery.cookie.js"></script>
         <script type="text/javascript" src="mon.js"></script>
@@ -89,10 +86,10 @@ method main($request) {
   $t = $self->trace;
   my @plugins = (
     Continuity::Monitor::Plugin::REPL->new( request => $request ),
-    # Continuity::Monitor::Plugin::CallStack->new( request => $request, trace => $t ),
-    # Continuity::Monitor::Plugin::Exit->new( request => $request ),
-    # Continuity::Monitor::Plugin::Counter->new( request => $request ),
-    # Continuity::Monitor::Plugin::FileEdit->new( request => $request ),
+    Continuity::Monitor::Plugin::CallStack->new( request => $request, trace => $t ),
+    Continuity::Monitor::Plugin::Exit->new( request => $request ),
+    Continuity::Monitor::Plugin::Counter->new( request => $request ),
+    Continuity::Monitor::Plugin::FileEdit->new( request => $request ),
   );
   my $continue = 1;
   do {
