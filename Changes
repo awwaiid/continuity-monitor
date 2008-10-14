@@ -1,6 +1,6 @@
-Revision history for Perl extension Continuity::Monitor.
+Revision history for Continuity::Monitor. See Changes-darcs or the main
+repository for a detailed list of internal changes.
 
-0.01  Tue Jul 24 23:21:44 2007
-	- original version; created by h2xs 1.23 with options
-		-X Continuity::Monitor
-
+Version 0.01 (released 2008.10.14)
+  * Initial release, just to get it out there
+  * Includes JS and image dependencies
