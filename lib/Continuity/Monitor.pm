@@ -3,7 +3,6 @@ package Continuity::Monitor;
 use strict;
 use Continuity;
 use Continuity::Inspector;
-use PadWalker 'peek_my';
 use Data::Dumper;
 use HTML::Entities;
 use Continuity::Monitor::REPL;
@@ -27,6 +26,8 @@ Continuity::Monitor - monitor and inspect a Continuity server
   $server->loop;
 
 =head1 DESCRIPTION
+
+B<NOTE: Currently this is broken, only Continuity::Monitor::CGI works. But I wanted to get it out on CPAN anyway.>
 
 This is an application to monitor and inspect your running application. It has
 its own web interface on a separate port. It is very rough!
