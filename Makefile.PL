@@ -9,6 +9,7 @@ WriteMakefile(
     LICENSE           => 'perl',
     PREREQ_PM         => {
       'Continuity'                                         => '0.996',
+      'Coro::Generator'                                    => 0,
       'Devel::StackTrace::WithLexicals'                    => '0.01',
       'Method::Signatures'                                 => '20081008',
       'Moose'                                              => '0.58',

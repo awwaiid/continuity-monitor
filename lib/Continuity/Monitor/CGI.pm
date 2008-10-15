@@ -39,10 +39,12 @@ method start_inspecting {
     ignore_package => [qw( Devel::StackTrace Continuity::Monitor::CGI )]
   );
   $self->trace( $trace );
+  my $docroot = $INC{'Continuity/Monitor/CGI.pm'};
+  $docroot =~ s/CGI.pm/htdocs/;
   my $server = Continuity->new(
     callback => \&main,
     port => 8080,
-    docroot => '/home/awwaiid/projects/perl/Continuity-Monitor/htdocs',
+    docroot => $docroot,
     debug_callback => sub { STDERR->print("@_\n") },
     callback => sub { $self->main(@_) },
   );
