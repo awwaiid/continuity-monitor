@@ -1,40 +1,36 @@
-Continuity-Monitor version 0.01
-===============================
+NAME
+    Continuity::Monitor - monitor and inspect a Continuity server
 
-The README is used to introduce the module and provide instructions on
-how to install the module, any machine dependencies it may have (for
-example C compilers and installed libraries) and any other information
-that should be provided before the module is installed.
+SYNOPSIS
+      #!/usr/bin/perl
 
-A README file is required for CPAN modules since CPAN extracts the
-README file from a module distribution so that people browsing the
-archive can use it get an idea of the modules uses. It is usually a
-good idea to provide version information here so that people can
-decide whether fixes for the module are worth downloading.
+      use strict;
+      use Continuity;
+      use Continuity::Monitor;
 
-INSTALLATION
+      my $server = new Continuity( port => 8080 );
+      my $monitor = Continuity::Monitor->new( server => $server, port => 8081 );
+      $server->loop;
 
-To install this module type the following:
+DESCRIPTION
+    NOTE: Currently this is broken, only Continuity::Monitor::CGI works. But
+    I wanted to get it out on CPAN anyway.
 
-   perl Makefile.PL
-   make
-   make test
-   make install
+    This is an application to monitor and inspect your running application.
+    It has its own web interface on a separate port. It is very rough!
 
-DEPENDENCIES
+    The monitor does several things. First, this is a monitoring tool for
+    working with the sessions your server is running. You can view and kill
+    each session. Secondly it is an inspector for each session -- letting
+    you see the current state including variables. And third, it will let
+    you actually change the values of these sessions, or even run code in
+    their context.
 
-This module requires these other modules and libraries:
+    (well... it _will_ do all those things :) )
 
-  blah blah blah
-
-COPYRIGHT AND LICENCE
-
-Put the correct copyright and licence information here.
-
-Copyright (C) 2007 by awwaiid
-
-This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself, either Perl version 5.8.8 or,
-at your option, any later version of Perl 5 you may have available.
-
+METHODS
+  $monitor = Continuity::Monitor->new( server => $server, ... )
+    This is just like Continuity->new, and takes all of the same parameters,
+    except that instead of running your code it is a self-contained
+    application.
 

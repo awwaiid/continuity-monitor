@@ -1,12 +1,17 @@
 use 5.008008;
 use ExtUtils::MakeMaker;
-# See lib/ExtUtils/MakeMaker.pm for details of how to influence
-# the contents of the Makefile that is written.
+
 WriteMakefile(
     NAME              => 'Continuity::Monitor',
-    VERSION_FROM      => 'lib/Continuity/Monitor.pm', # finds $VERSION
-    PREREQ_PM         => {}, # e.g., Module::Name => 1.1
-    ($] >= 5.005 ?     ## Add these new keywords supported since 5.005
-      (ABSTRACT_FROM  => 'lib/Continuity/Monitor.pm', # retrieve abstract from module
-       AUTHOR         => 'awwaiid <awwaiid@>') : ()),
+    VERSION_FROM      => 'lib/Continuity/Monitor.pm',
+    ABSTRACT_FROM     => 'lib/Continuity/Monitor.pm',
+    AUTHOR            => 'Brock Wilcox <awwaiid@thelackthereof.org>',
+    LICENSE           => 'perl',
+    PREREQ_PM         => {
+      'Continuity'                                         => '0.996',
+      'Devel::StackTrace::WithLexicals'                    => '0.01',
+      'Method::Signatures'                                 => '20081008',
+      'Moose'                                              => '0.58',
+      'Moose::Exporter'                                    => 0,
+    },
 );
