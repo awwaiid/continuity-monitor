@@ -14,5 +14,6 @@ WriteMakefile(
       'Method::Signatures'                                 => '20081008',
       'Moose'                                              => '0.58',
       'Moose::Exporter'                                    => 0,
+      'Module::Refresh'                                    => 0,
     },
 );
