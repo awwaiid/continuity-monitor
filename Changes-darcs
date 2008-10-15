@@ -1,0 +1,51 @@
+#!/usr/bin/perl
+# This is an active-changelog! Run it to update it using Darcs.
+# See below for the actual Changelog stuff!
+
+open my $out,"+<",$0;
+seek $out,0,0;
+seek DATA,0,0;
+print $out ($l = <DATA>) until $l eq "__DATA__\n";
+# Get the Darcs changelog
+$f = `darcs changes`;
+# Chop off the timestamps (but keep the date)
+$f =~ s/\d\d:\d\d:\d\d ... //g;
+# Combine like sections. This might need a bit of work.
+1 while($f =~ s/^(... ...\s+\d+ \d\d\d\d  [\w@\.\-]+)$(.*)^\1$/$1$2/gms);
+# Clear out the extra space we just made
+$f =~ s/\n\n\n/\n/g;
+print $out $f;
+
+# ***************************************
+# *** This is the actual Changelog :) ***
+# ***************************************
+__DATA__
+Tue Oct 14 2008  awwaiid@thelackthereof.org
+  * Update changelog
+  * add js deps
+  * add js deps
+  * add js deps
+  * add js deps
+  * add js deps
+  * JS dependencies
+
+Mon Oct 13 2008  awwaiid@thelackthereof.org
+  * Add js dependencies
+  * Remove lots of unused js experiments
+  * Simplify cgi example
+
+Sun Oct 12 2008  awwaiid@thelackthereof.org
+  * Updates to FileEdit
+  * Disable plugins by default
+  * Sends posts to /
+  * Encode file editing content
+  * Add missing files
+  * All sorts of horrible things
+
+Wed Oct  8 2008  awwaiid@thelackthereof.org
+  * Add C::M::CGI related files
+  * Change around default REPL plugins
+  * Disable Devel::REPL default term
+
+Fri May 30 2008  awwaiid@thelackthereof.org
+  * Initial import
