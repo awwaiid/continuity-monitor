@@ -1,11 +1,10 @@
 Changes
+Changes-darcs
 MANIFEST
 Makefile.PL
 README
-browse.pl
 eg/cgi_hello.pl
 eg/counter.pl
-gra.pl
 htdocs/images/black/tv-collapsable-last.gif
 htdocs/images/black/tv-collapsable.gif
 htdocs/images/black/tv-expandable-last.gif
@@ -182,5 +181,4 @@ lib/MooseX/Continuity/CallbackLinks.pm
 lib/MooseX/Continuity/Request.pm
 lib/MooseX/Continuity/Widget.pm
 lib/MooseX/Coro.pm
-repl.pl
 t/Continuity-Monitor.t
