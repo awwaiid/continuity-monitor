@@ -6,6 +6,7 @@ use Continuity::Inspector;
 use Data::Dumper;
 use HTML::Entities;
 use Continuity::Monitor::REPL;
+use PadWalker 'peek_my';
 
 our $VERSION = '0.01';
 
@@ -22,7 +23,7 @@ Continuity::Monitor - monitor and inspect a Continuity server
   use Continuity::Monitor;
 
   my $server = new Continuity( port => 8080 );
-  my $monitor = Continuity::Monitor->new( server => $server, port => 8081 );
+  my $monitor = Continuity::Monitor->new( server => $server, port => 8081,  );
   $server->loop;
 
 =head1 DESCRIPTION
@@ -50,31 +51,30 @@ that instead of running your code it is a self-contained application.
 =cut
 
 sub new {
-  my ($class, @ops) = @_;
+  my ($class, %ops) = @_;
+  $ops{server} or die "server is a required parameter; pass in the Continuity server for C::Monitor to inspect";
   my $self = {
     port => 8081, # override default port to avoid a conflict
-    @ops
+    %ops,
   };
-
-  bless $self, $class;
 
   # We don't save the server... because we don't need it and because weird
   # things happen when we do :)
-  $self->{server} = Continuity->new(
+  $self->{continuity} = Continuity->new(
       port => $self->{port},
       cookie_session => 'monitor_sid',
       callback => sub { $self->main(@_) },
   );
 
-  return $self;
+  bless $self, $class;
+
 }
 
 sub main {
   my ($self, $request) = @_;
   $self->{request} = $request;
-  my $server = $self->{server};
   while(1) {
-    my $sessions = $server->{mapper}->{sessions} or die;
+    my $sessions = $self->{server}->{mapper}->{sessions} or die;
     my $session_count = scalar keys %$sessions;
     my @sess = sort keys %$sessions;
     @sess = map { qq{<li><a href="?inspect_sess=$_">$_</a></li>\n} } @sess;
