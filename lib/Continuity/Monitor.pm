@@ -60,7 +60,7 @@ sub new {
 
   # We don't save the server... because we don't need it and because weird
   # things happen when we do :)
-  Continuity->new(
+  $self->{server} = Continuity->new(
       port => $self->{port},
       cookie_session => 'monitor_sid',
       callback => sub { $self->main(@_) },
@@ -72,9 +72,9 @@ sub new {
 sub main {
   my ($self, $request) = @_;
   $self->{request} = $request;
-  my $server = $self->{server} || $main::server;
+  my $server = $self->{server};
   while(1) {
-    my $sessions = $server->{mapper}->{sessions};
+    my $sessions = $server->{mapper}->{sessions} or die;
     my $session_count = scalar keys %$sessions;
     my @sess = sort keys %$sessions;
     @sess = map { qq{<li><a href="?inspect_sess=$_">$_</a></li>\n} } @sess;
