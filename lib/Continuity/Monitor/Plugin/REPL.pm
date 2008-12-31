@@ -84,6 +84,8 @@ haven't been able to figure out how to hack Term::ReadLine::Gnu yet.
     default => sub { }
   );
 
+  no warnings 'redefine';
+
   sub print {
     my ($self, @ret) = @_;
     my $out = "@ret";

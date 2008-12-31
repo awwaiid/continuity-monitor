@@ -1,7 +1,7 @@
 
 package MooseX::Continuity::CallbackLinks;
 
-use 5.10.0;
+# use 5.10.0;
 use Moose::Role;
 use Data::UUID;
 
@@ -37,7 +37,8 @@ sub cb_button {
 
 sub process_callbacks {
   my ($self, $clear) = @_;
-  $clear //= 1;
+  # $clear //= 1;
+  defined($clear) or $clear = 1;
   my $name = $self->param('callback');
   if($name && defined $self->callback->{$name}) {
     $self->callback->{$name}->();

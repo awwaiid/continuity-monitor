@@ -1,14 +1,32 @@
 package Continuity::Monitor;
 
 use strict;
+use warnings;
+no warnings 'redefine';
+
 use Continuity;
 use Continuity::Inspector;
 use Data::Dumper;
 use HTML::Entities;
 use Continuity::Monitor::REPL;
 use PadWalker 'peek_my';
+use Moose;
 
-our $VERSION = '0.01';
+use Method::Signatures;
+
+use IO::Handle;
+use Data::Dumper;
+
+use Devel::StackTrace::WithLexicals;
+
+use Continuity::Monitor::Plugin::CallStack;
+use Continuity::Monitor::Plugin::REPL;
+use Continuity::Monitor::Plugin::Exit;
+use Continuity::Monitor::Plugin::Counter;
+use Continuity::Monitor::Plugin::FileEdit;
+
+
+our $VERSION = '0.02';
 
 =head1 NAME
 
@@ -69,6 +87,86 @@ sub new {
   bless $self, $class;
 
 }
+
+has request => ( is => 'rw' );
+has trace => ( is => 'rw' );
+
+method main ($request) {
+  $self->request($request);
+  my $sessions = $self->{server}->{mapper}->{sessions} or die;
+  my $session_count = scalar keys %$sessions;
+  my @sess = sort keys %$sessions;
+  $request->print(
+    qq{$session_count sessions:<br><ul>}, 
+    map({ qq{<li><a href="?inspect_sess=$_">$_</a></li>\n} } @sess),
+    qq{/ul>}
+  );
+  $request->next;
+  my $session = $request->param('inspect_sess');
+
+#  my $trace = Devel::StackTrace::WithLexicals->new(
+#    ignore_package => [qw( Devel::StackTrace Continuity::Monitor::CGI )]
+#  );
+  my @plugins = (
+    Continuity::Monitor::Plugin::REPL->new( request => $request ),
+    # Continuity::Monitor::Plugin::CallStack->new( request => $request, trace => $trace ), # XXX silly!
+    Continuity::Monitor::Plugin::CallStack->new( request => $request ),
+    Continuity::Monitor::Plugin::Exit->new( request => $request ),
+    Continuity::Monitor::Plugin::Counter->new( request => $request ),
+    Continuity::Monitor::Plugin::FileEdit->new( request => $request ),
+  );
+  my $continue = 1;
+  do {
+    $self->print_header;
+    foreach my $plugin (@plugins) {
+      # $continue &&= $plugin->process();
+      Continuity::Inspector->new( callback => sub {
+          $continue &&= $plugin->process();
+      })->inspect( $sessions->{$session} );
+    }
+    $self->print_footer;
+    $self->request->next if $continue;
+
+  } while($continue);
+  $request->print("Exiting...");
+  # sdw don't think unlook or $request->finish are needed... in fact more likely to cause problems.
+}
+
+method print_header {
+$SIG{__DIE__} = sub { use Carp; Carp::confess; };
+  my $id = $self->request->session_id;
+  $self->request->print(qq|
+    <html>
+      <head>
+        <title>Continuity::Monitor</title>
+        <link rel="stylesheet" type="text/css" href="htdocs/mon.css">
+        <link rel="stylesheet" href="js/themes/flora/flora.dialog.css" type="text/css" media="screen">
+        <link rel="stylesheet" href="js/jquery-treeview/jquery.treeview.css" />
+        <script type="text/javascript" src="js/jquery-1.2.6.js"></script>
+        <script type="text/javascript" src="js/jquery.ui.all.js"></script>
+        <script type="text/javascript" src="js/jquery-treeview/jquery.treeview.js"></script>
+        <script type="text/javascript" src="js/jquery.cookie.js"></script>
+        <script type="text/javascript" src="mon.js"></script>
+      </head>
+      <body class=flora>
+        <input type=hidden name=sid value="$id">
+  |);
+} 
+
+method print_footer {
+
+  $self->request->print(qq|
+      </body>
+    </html>
+  |);
+}
+
+1;
+
+
+__END__
+
+the old stuff:
 
 sub main {
   my ($self, $request) = @_;

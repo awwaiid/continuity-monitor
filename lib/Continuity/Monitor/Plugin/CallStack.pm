@@ -5,7 +5,7 @@ use Method::Signatures;
 use Devel::StackTrace::WithLexicals;
 use Data::Visitor::Callback;
 
-has trace => ( is => 'rw' );
+# has trace => ( is => 'rw' );
 
 with qw(
   MooseX::Coro
@@ -15,7 +15,11 @@ with qw(
 
 method print_trace {
   $self->print("<div class=dialog id=stacktrace title='Stacktrace'><ul>");
-  my @frames = $self->trace->frames;
+  # my @frames = $self->trace->frames;
+  my $trace = Devel::StackTrace::WithLexicals->new(
+    ignore_package => [qw( Devel::StackTrace Continuity::Monitor::CGI )]
+  );  
+  my @frames = $trace->frames;
   my $fieldnum = 0;
   foreach my $level (@frames) {
     $self->print("<li>" . $level->subroutine
@@ -27,7 +31,12 @@ method print_trace {
   $self->print("</ul></div>");
 }
 
-method print_lexicals($lexicals) {
+method print_lexicals {
+
+  my $lexicals = Devel::StackTrace::WithLexicals->new(
+    ignore_package => [qw( Devel::StackTrace Continuity::Monitor::CGI )]
+  );
+
   my $fieldnum = 0;
   my $visitor = Data::Visitor::Callback->new(
     ignore_return_values => 1,
