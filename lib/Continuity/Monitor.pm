@@ -74,6 +74,9 @@ sub new {
     port => 8081, # override default port to avoid a conflict
     %ops,
   };
+  
+  my $docroot = $INC{'Continuity/Monitor.pm'};
+  $docroot =~ s/Monitor.pm/Monitor\/htdocs/;
 
   # We don't save the server... because we don't need it and because weird
   # things happen when we do :)
@@ -81,6 +84,7 @@ sub new {
       port => $self->{port},
       cookie_session => 'monitor_sid',
       callback => sub { $self->main(@_) },
+      docroot => $docroot,
   );
 
   bless $self, $class;
