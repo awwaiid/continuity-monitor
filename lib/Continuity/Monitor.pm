@@ -102,7 +102,7 @@ method main ($request) {
   $request->print(
     qq{$session_count sessions:<br><ul>}, 
     map({ qq{<li><a href="?inspect_sess=$_">$_</a></li>\n} } @sess),
-    qq{/ul>}
+    qq{</ul>}
   );
   $request->next;
   my $session = $request->param('inspect_sess');
