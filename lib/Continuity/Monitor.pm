@@ -8,7 +8,6 @@ use Continuity;
 use Continuity::Inspector;
 use Data::Dumper;
 use HTML::Entities;
-use Continuity::Monitor::REPL;
 use PadWalker 'peek_my';
 use Moose;
 
