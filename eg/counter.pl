@@ -25,7 +25,7 @@ functionality.
 use Continuity;
 use vars qw( $server );
 $server = new Continuity( port => 8080 );
-Continuity::Monitor->new( port => 8081 );
+Continuity::Monitor->new( port => 8081, server => $server );
 
 $server->loop;
 
