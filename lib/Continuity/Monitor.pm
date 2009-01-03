@@ -96,9 +96,11 @@ has trace => ( is => 'rw' );
 
 method main ($request) {
   $self->request($request);
-  my $sessions = $self->{server}->{mapper}->{sessions} or die;
-  my $session_count = scalar keys %$sessions;
-  my @sess = sort keys %$sessions;
+  # my $sessions = $self->{server}->{mapper}->{sessions} or die;
+  # my $session_count = scalar keys %$sessions;
+  # my @sess = sort keys %$sessions;
+  my @sess = $self->{server}->mapper->sessions;
+  my $session_count = @sess;
   $request->print(
     qq{$session_count sessions:<br><ul>}, 
     map({ qq{<li><a href="?inspect_sess=$_">$_</a></li>\n} } @sess),
@@ -123,9 +125,10 @@ method main ($request) {
     $self->print_header;
     foreach my $plugin (@plugins) {
       # $continue &&= $plugin->process();
-      Continuity::Inspector->new( callback => sub {
-          $continue &&= $plugin->process();
-      })->inspect( $sessions->{$session} );
+      # Continuity::Inspector->new( callback => sub {
+      #     $continue &&= $plugin->process();
+      # })->inspect( $sessions->{$session} );
+      $self->{server}->mapper->inspect($session, sub { $continue &&= $plugin->process() });      
     }
     $self->print_footer;
     $self->request->next if $continue;
