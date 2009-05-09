@@ -1,27 +1,21 @@
 package Continuity::Monitor::Plugin::Exit;
 
-use Moose;
-use Method::Signatures;
-use Devel::StackTrace::WithLexicals;
-use Data::Visitor::Callback;
+use strict;
+use base 'Continuity::Monitor::Plugin';
 
-with qw(
-  MooseX::Coro
-  MooseX::Continuity::Request
-  MooseX::Continuity::CallbackLinks
-);
-
-method main {
-  while(1) {
-    $self->print("<div class=dialog title='Exit'>");
-    $self->print($self->cb_link('EXIT' => sub {
-      $self->print("<script>window.location = 'about:blank';</script>");
-      $self->yield(0);
-    }));
-    $self->print("</div>");
-    $self->yield(1);
-    $self->process_callbacks;
-  }
+sub process {
+  my ($self) = @_;
+  my $exit_link = $self->request->callback_link(
+    Exit => sub {
+      $self->manager->{do_exit} = 1;
+    }
+  );
+  my $output = qq{
+    <div class=dialog title="Exit">
+      $exit_link
+    </div>
+  };
+  return $output;
 }
 
 1;
